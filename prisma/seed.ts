@@ -10,6 +10,8 @@ async function main() {
 
     await prisma.card.deleteMany();
     await prisma.user.deleteMany();
+    await prisma.deck.deleteMany();
+    await prisma.deckCard.deleteMany();
 
     const hashedPassword = await bcrypt.hash("password123", 10);
 
@@ -55,6 +57,28 @@ async function main() {
             })
         )
     );
+
+    
+    console.log(createdCards);
+
+    const users = [redUser, blueUser];
+    for(const user of users) {
+          const randomCards = [...createdCards].sort(() => 0.5 - Math.random()).slice(0, 10);
+        await prisma.deck.create({
+            data: {
+                name: `${user.username}'s Deck`,
+                userId: user.id,
+                cards: {
+                    create: randomCards.map((randomCard) => {
+                        console.log("for user :", user.username, "adding card:", randomCard.name);
+                        return {
+                            cardId: randomCard.id
+                        }
+                    })
+                }
+            },
+        });
+    }
 
     console.log(`✅ Created ${pokemonData.length} Pokemon cards`);
 
