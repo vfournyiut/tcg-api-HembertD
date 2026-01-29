@@ -11,7 +11,7 @@ import {PokemonType} from "../src/generated/prisma/enums";
  * @param count - Number of random cards to select
  * @returns Array of randomly selected cards
  */
-function getRandomCards(cards: any[], count: number): any[] {
+function getRandomCards(cards: CardModel[], count: number): CardModel[] {
     const shuffled = [...cards].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
 }
