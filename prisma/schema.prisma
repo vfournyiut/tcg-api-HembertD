@@ -68,5 +68,5 @@ model DeckCard {
   deck      Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
   card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
-  // @@unique([deckId, cardId]) A décommenter si les doublons dans un deck sont interdits
+  @@unique([deckId, cardId])
 }
