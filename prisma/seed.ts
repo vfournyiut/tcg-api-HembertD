@@ -5,9 +5,22 @@ import {prisma} from "../src/database";
 import {CardModel} from "../src/generated/prisma/models/Card";
 import {PokemonType} from "../src/generated/prisma/enums";
 
+/**
+ * Selects random cards from an array
+ * @param cards - Array of cards to choose from
+ * @param count - Number of random cards to select
+ * @returns Array of randomly selected cards
+ */
+function getRandomCards(cards: any[], count: number): any[] {
+    const shuffled = [...cards].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
 async function main() {
     console.log("🌱 Starting database seed...");
 
+    await prisma.deckCard.deleteMany();
+    await prisma.deck.deleteMany();
     await prisma.card.deleteMany();
     await prisma.user.deleteMany();
 
@@ -58,6 +71,53 @@ async function main() {
 
     console.log(`✅ Created ${pokemonData.length} Pokemon cards`);
 
+    // Get all cards from database
+    const allCards = await prisma.card.findMany();
+
+    // Create Starter Deck for red user
+    const randomCardsForRed = getRandomCards(allCards, 10);
+    const redDeck = await prisma.deck.create({
+        data: {
+            name: "Starter Deck",
+            userId: redUser.id,
+        },
+    });
+
+    await Promise.all(
+        randomCardsForRed.map((card) =>
+            prisma.deckCard.create({
+                data: {
+                    deckId: redDeck.id,
+                    cardId: card.id,
+                },
+            })
+        )
+    );
+
+    console.log(`✅ Created Starter Deck for red with ${randomCardsForRed.length} random cards`);
+
+    // Create Starter Deck for blue user
+    const randomCardsForBlue = getRandomCards(allCards, 10);
+    const blueDeck = await prisma.deck.create({
+        data: {
+            name: "Starter Deck",
+            userId: blueUser.id,
+        },
+    });
+
+    await Promise.all(
+        randomCardsForBlue.map((card) =>
+            prisma.deckCard.create({
+                data: {
+                    deckId: blueDeck.id,
+                    cardId: card.id,
+                },
+            })
+        )
+    );
+
+    console.log(`✅ Created Starter Deck for blue with ${randomCardsForBlue.length} random cards`);
+
     console.log("\n🎉 Database seeding completed!");
 }
 
@@ -69,3 +129,4 @@ main()
     .finally(async () => {
         await prisma.$disconnect();
     });
+
