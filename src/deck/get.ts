@@ -35,7 +35,7 @@ router.get('/mine', authenticateToken, async (req: Request, res: Response) => {
 
 // GET /api/decks/:id
 router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
-    const deckId = parseInt(req.params.id)
+    const deckId : number = parseInt(req.params.id)
     const userId = req.user?.userId
 
     if (isNaN(deckId)) {
