@@ -7,7 +7,7 @@ const router = Router()
 
 // PATCH /api/decks/:id
 router.patch('/:id', authenticateToken, async (req: Request, res: Response) => {
-    const deckId = parseInt(req.params.id)
+    const deckId : number = parseInt(req.params.id)
     const userId = req.user?.userId
     const name : string = req.body.name
     const cards : number[] = req.body.cards
