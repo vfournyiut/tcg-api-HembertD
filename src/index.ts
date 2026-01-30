@@ -2,10 +2,10 @@ import {createServer} from "http";
 import {env} from "./env";
 import express from "express";
 import cors from "cors";
-import {authRouter as signUpRouter} from "./auth/sign-up";
-import {authRouter as signInRouter} from "./auth/sign-in";
-import {cardRouter} from "./cards/card";
-import {deckRouter} from "./deck/deck";
+import {authRouter as signUpRouter} from "./api/auth/sign-up";
+import {authRouter as signInRouter} from "./api/auth/sign-in";
+import {cardRouter} from "./api/cards/card";
+import {deckRouter} from "./api/deck/deck";
 
 // Create Express app
 export const app = express();

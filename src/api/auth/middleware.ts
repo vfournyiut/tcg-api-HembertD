@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express'
 import jwt from 'jsonwebtoken'
-import {env} from "../env";
+import {env} from "../../env";
 
 // Étendre le type Request pour ajouter userId
 declare global {
