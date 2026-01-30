@@ -11,7 +11,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     const cards : number[] = req.body.cards
     const userId = req.user?.userId
 
-    if (!name || !cards || !Array.isArray(cards)) {
+    if (!name || !cards) {
         return res.status(400).json({error: 'Name et cards (array) sont requis'})
     }
 
