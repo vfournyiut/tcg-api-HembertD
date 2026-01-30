@@ -5,9 +5,10 @@ import { CardModel, DeckModel } from '../generated/prisma/models';
 
 const router = Router()
 
-// POST /api/decks - Create a new deck
+// POST /api/decks
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
-    const {name, cards} = req.body
+    const name : string = req.body.name
+    const cards : number[] = req.body.cards
     const userId = req.user?.userId
 
     if (!name || !cards || !Array.isArray(cards)) {
