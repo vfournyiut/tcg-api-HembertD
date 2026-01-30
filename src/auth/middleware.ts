@@ -35,7 +35,7 @@ export const authenticateToken = (
         req.userId = decoded.userId
 
         // 4. Passer au prochain middleware ou à la route
-        next()
+        return next()
     } catch (error) {
         return res.status(401).json({error: 'Token invalide ou expiré'})
     }
