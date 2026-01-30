@@ -5,7 +5,7 @@ import { CardModel } from '../generated/prisma/models';
 export const cardRouter = Router()
 
 // GET api/cards
-cardRouter.get('/', async (req: Request, res: Response) => {
+cardRouter.get('/', async (_req: Request, res: Response) => {
     try {
         const cards: CardModel[] = await prisma.card.findMany({
             orderBy: {
