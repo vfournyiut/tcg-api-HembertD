@@ -46,6 +46,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
         const deck: DeckModel | null = await prisma.deck.findUnique({
             where: {
                 id: deckId,
+                userId: userId,
             },
             include: {
                 cards: {
@@ -58,10 +59,6 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 
         if (!deck) {
             return res.status(404).json({error: 'Deck non trouvé'})
-        }
-
-        if (deck.userId !== userId) {
-            return res.status(403).json({error: 'Accès interdit'})
         }
 
         return res.status(200).json(deck)
