@@ -1,16 +1,12 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
 import {app} from '../../../src/index';
 import {prismaMock} from '../../vitest.setup';
-import {env} from '../../../src/env';
+import {createValidToken, createMockDeck, createMockDeckWithCards, createValidDeckCards} from '../../utils/api';
 
 describe('PATCH /api/decks/:id', () => {
-    const validToken = jwt.sign(
-        {userId: 1, email: 'test@example.com'},
-        env.JWT_SECRET,
-        {expiresIn: '1h'}
-    );
+    const validToken = createValidToken(1, 'test@example.com');
+    const validCards = createValidDeckCards();
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -68,15 +64,7 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-005 : Cards nest pas un array (400)', () => {
         it('should return 400 when cards is not an array', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
-            prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
+            prismaMock.deck.findFirst.mockResolvedValue(createMockDeck(1));
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -90,15 +78,7 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-006 : Moins de 10 cartes (400)', () => {
         it('should return 400 when cards has less than 10', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
-            prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
+            prismaMock.deck.findFirst.mockResolvedValue(createMockDeck(1));
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -112,15 +92,7 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-007 : Plus de 10 cartes (400)', () => {
         it('should return 400 when cards has more than 10', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
-            prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
+            prismaMock.deck.findFirst.mockResolvedValue(createMockDeck(1));
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -134,22 +106,8 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-008 : Cartes inexistantes (400)', () => {
         it('should return 400 when some cards do not exist', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
-            prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
-
-            const mockCards = [
-                {id: 1, name: 'Bulbizarre', pokedexNumber: 1, type: 'Grass' as const, hp: 60, attack: 49, imgUrl: 'https://example.com/1.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 2, name: 'Salamèche', pokedexNumber: 4, type: 'Fire' as const, hp: 39, attack: 52, imgUrl: 'https://example.com/4.png', createdAt: new Date(), updatedAt: new Date()}
-            ];
-
-            prismaMock.card.findMany.mockResolvedValue(mockCards);
+            prismaMock.deck.findFirst.mockResolvedValue(createMockDeck(1));
+            prismaMock.card.findMany.mockResolvedValue(validCards.slice(0, 2));
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -163,30 +121,10 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-009 : Mise à jour du nom uniquement (200)', () => {
         it('should return 200 when updating only the name', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Ancien Nom',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
+            const mockDeck = createMockDeck(1, {name: 'Ancien Nom'});
             prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
-            prismaMock.deck.update.mockResolvedValue({
-                ...mockDeck,
-                name: 'Nouveau Nom'
-            });
-
-            const mockUpdatedDeck = {
-                id: 1,
-                name: 'Nouveau Nom',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                cards: []
-            };
-
-            prismaMock.deck.findUnique.mockResolvedValue(mockUpdatedDeck);
+            prismaMock.deck.update.mockResolvedValue({...mockDeck, name: 'Nouveau Nom'});
+            prismaMock.deck.findUnique.mockResolvedValue(createMockDeck(1, {name: 'Nouveau Nom'}));
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -200,46 +138,9 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-010 : Mise à jour des cartes uniquement (200)', () => {
         it('should return 200 when updating only the cards', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
-            prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
-
-            const mockCards = [
-                {id: 1, name: 'Bulbizarre', pokedexNumber: 1, type: 'Grass' as const, hp: 60, attack: 49, imgUrl: 'https://example.com/1.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 2, name: 'Salamèche', pokedexNumber: 4, type: 'Fire' as const, hp: 39, attack: 52, imgUrl: 'https://example.com/4.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 3, name: 'Carapuce', pokedexNumber: 7, type: 'Water' as const, hp: 44, attack: 48, imgUrl: 'https://example.com/7.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 4, name: 'Chenipan', pokedexNumber: 11, type: 'Bug' as const, hp: 30, attack: 35, imgUrl: 'https://example.com/11.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 5, name: 'Aspicot', pokedexNumber: 13, type: 'Bug' as const, hp: 40, attack: 35, imgUrl: 'https://example.com/13.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 6, name: 'Roucool', pokedexNumber: 16, type: 'Flying' as const, hp: 40, attack: 45, imgUrl: 'https://example.com/16.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 7, name: 'Rattata', pokedexNumber: 19, type: 'Normal' as const, hp: 30, attack: 56, imgUrl: 'https://example.com/19.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 8, name: 'Piafabec', pokedexNumber: 21, type: 'Flying' as const, hp: 40, attack: 60, imgUrl: 'https://example.com/21.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 9, name: 'Abo', pokedexNumber: 23, type: 'Poison' as const, hp: 35, attack: 60, imgUrl: 'https://example.com/23.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 10, name: 'Pikachu', pokedexNumber: 25, type: 'Electric' as const, hp: 35, attack: 55, imgUrl: 'https://example.com/25.png', createdAt: new Date(), updatedAt: new Date()}
-            ];
-
-            prismaMock.card.findMany.mockResolvedValue(mockCards);
-
-            const mockUpdatedDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                cards: mockCards.map((card, index) => ({
-                    id: index + 1,
-                    deckId: 1,
-                    cardId: card.id,
-                    card: card
-                }))
-            };
-
-            prismaMock.deck.findUnique.mockResolvedValue(mockUpdatedDeck);
+            prismaMock.deck.findFirst.mockResolvedValue(createMockDeck(1));
+            prismaMock.card.findMany.mockResolvedValue(validCards);
+            prismaMock.deck.findUnique.mockResolvedValue(createMockDeckWithCards(1));
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -253,46 +154,10 @@ describe('PATCH /api/decks/:id', () => {
 
     describe('TC-DECK-PATCH-011 : Mise à jour du nom et des cartes (200)', () => {
         it('should return 200 when updating both name and cards', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Ancien Nom',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
-            prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
-
-            const mockCards = [
-                {id: 1, name: 'Bulbizarre', pokedexNumber: 1, type: 'Grass' as const, hp: 60, attack: 49, imgUrl: 'https://example.com/1.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 2, name: 'Salamèche', pokedexNumber: 4, type: 'Fire' as const, hp: 39, attack: 52, imgUrl: 'https://example.com/4.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 3, name: 'Carapuce', pokedexNumber: 7, type: 'Water' as const, hp: 44, attack: 48, imgUrl: 'https://example.com/7.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 4, name: 'Chenipan', pokedexNumber: 11, type: 'Bug' as const, hp: 30, attack: 35, imgUrl: 'https://example.com/11.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 5, name: 'Aspicot', pokedexNumber: 13, type: 'Bug' as const, hp: 40, attack: 35, imgUrl: 'https://example.com/13.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 6, name: 'Roucool', pokedexNumber: 16, type: 'Flying' as const, hp: 40, attack: 45, imgUrl: 'https://example.com/16.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 7, name: 'Rattata', pokedexNumber: 19, type: 'Normal' as const, hp: 30, attack: 56, imgUrl: 'https://example.com/19.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 8, name: 'Piafabec', pokedexNumber: 21, type: 'Flying' as const, hp: 40, attack: 60, imgUrl: 'https://example.com/21.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 9, name: 'Abo', pokedexNumber: 23, type: 'Poison' as const, hp: 35, attack: 60, imgUrl: 'https://example.com/23.png', createdAt: new Date(), updatedAt: new Date()},
-                {id: 10, name: 'Pikachu', pokedexNumber: 25, type: 'Electric' as const, hp: 35, attack: 55, imgUrl: 'https://example.com/25.png', createdAt: new Date(), updatedAt: new Date()}
-            ];
-
-            prismaMock.card.findMany.mockResolvedValue(mockCards);
-
-            const mockUpdatedDeck = {
-                id: 1,
-                name: 'Nouveau Nom',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                cards: mockCards.map((card, index) => ({
-                    id: index + 1,
-                    deckId: 1,
-                    cardId: card.id,
-                    card: card
-                }))
-            };
-
-            prismaMock.deck.findUnique.mockResolvedValue(mockUpdatedDeck);
+            const mockDeckWithCards = createMockDeckWithCards(1);
+            prismaMock.deck.findFirst.mockResolvedValue(createMockDeck(1, {name: 'Ancien Nom'}));
+            prismaMock.card.findMany.mockResolvedValue(validCards);
+            prismaMock.deck.findUnique.mockResolvedValue({...mockDeckWithCards, name: 'Nouveau Nom'});
 
             const response = await request(app)
                 .patch('/api/decks/1')
@@ -319,3 +184,4 @@ describe('PATCH /api/decks/:id', () => {
         });
     });
 });
+

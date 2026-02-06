@@ -1,16 +1,11 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
 import {app} from '../../../src/index';
 import {prismaMock} from '../../vitest.setup';
-import {env} from '../../../src/env';
+import {createValidToken, createMockDeck, createMockDeckWithCards} from '../../utils/api';
 
 describe('GET /api/decks', () => {
-    const validToken = jwt.sign(
-        {userId: 1, email: 'test@example.com'},
-        env.JWT_SECRET,
-        {expiresIn: '1h'}
-    );
+    const validToken = createValidToken(1, 'test@example.com');
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -18,9 +13,7 @@ describe('GET /api/decks', () => {
 
     describe('TC-DECK-GET-001 : Sans token (401)', () => {
         it('should return 401 when no token is provided', async () => {
-            const response = await request(app)
-                .get('/api/decks/mine');
-
+            const response = await request(app).get('/api/decks/mine');
             expect(response.status).toBe(401);
             expect(response.body.error).toBe('Token manquant');
         });
@@ -28,17 +21,7 @@ describe('GET /api/decks', () => {
 
     describe('TC-DECK-GET-002 : Avec token valide (200)', () => {
         it('should return 200 and user decks', async () => {
-            const mockDecks = [
-                {
-                    id: 1,
-                    name: 'Mon Deck',
-                    userId: 1,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    cards: []
-                }
-            ];
-
+            const mockDecks = [createMockDeck(1)];
             prismaMock.deck.findMany.mockResolvedValue(mockDecks);
 
             const response = await request(app)
@@ -112,32 +95,7 @@ describe('GET /api/decks', () => {
 
     describe('TC-DECK-GET-007 : Deck existant (200)', () => {
         it('should return 200 and deck when found', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                cards: [
-                    {
-                        id: 1,
-                        deckId: 1,
-                        cardId: 1,
-                        card: {
-                            id: 1,
-                            name: 'Bulbizarre',
-                            pokedexNumber: 1,
-                            type: 'Grass' as const,
-                            hp: 60,
-                            attack: 49,
-                            imgUrl: 'https://example.com/1.png',
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        }
-                    }
-                ]
-            };
-
+            const mockDeck = createMockDeckWithCards(1);
             prismaMock.deck.findUnique.mockResolvedValue(mockDeck);
 
             const response = await request(app)

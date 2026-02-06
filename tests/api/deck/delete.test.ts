@@ -1,16 +1,11 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
 import {app} from '../../../src/index';
 import {prismaMock} from '../../vitest.setup';
-import {env} from '../../../src/env';
+import {createValidToken, createMockDeck} from '../../utils/api';
 
 describe('DELETE /api/decks/:id', () => {
-    const validToken = jwt.sign(
-        {userId: 1, email: 'test@example.com'},
-        env.JWT_SECRET,
-        {expiresIn: '1h'}
-    );
+    const validToken = createValidToken(1, 'test@example.com');
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -18,9 +13,7 @@ describe('DELETE /api/decks/:id', () => {
 
     describe('TC-DECK-DELETE-001 : Sans token (401)', () => {
         it('should return 401 when no token is provided', async () => {
-            const response = await request(app)
-                .delete('/api/decks/1');
-
+            const response = await request(app).delete('/api/decks/1');
             expect(response.status).toBe(401);
             expect(response.body.error).toBe('Token manquant');
         });
@@ -72,14 +65,7 @@ describe('DELETE /api/decks/:id', () => {
 
     describe('TC-DECK-DELETE-005 : Suppression réussie (204)', () => {
         it('should return 204 when deck is successfully deleted', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
+            const mockDeck = createMockDeck(1);
             prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
             prismaMock.deck.delete.mockResolvedValue(mockDeck);
 
@@ -92,14 +78,7 @@ describe('DELETE /api/decks/:id', () => {
         });
 
         it('should call prisma.deck.delete with correct id', async () => {
-            const mockDeck = {
-                id: 5,
-                name: 'Another Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
+            const mockDeck = createMockDeck(1, {id: 5});
             prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
             prismaMock.deck.delete.mockResolvedValue(mockDeck);
 
@@ -107,9 +86,7 @@ describe('DELETE /api/decks/:id', () => {
                 .delete('/api/decks/5')
                 .set('Authorization', `Bearer ${validToken}`);
 
-            expect(prismaMock.deck.delete).toHaveBeenCalledWith({
-                where: { id: 5 }
-            });
+            expect(prismaMock.deck.delete).toHaveBeenCalledWith({where: {id: 5}});
         });
     });
 
@@ -126,14 +103,7 @@ describe('DELETE /api/decks/:id', () => {
         });
 
         it('should return 500 when database error occurs on delete', async () => {
-            const mockDeck = {
-                id: 1,
-                name: 'Mon Deck',
-                userId: 1,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
-
+            const mockDeck = createMockDeck(1);
             prismaMock.deck.findFirst.mockResolvedValue(mockDeck);
             prismaMock.deck.delete.mockRejectedValue(new Error('Database error'));
 
