@@ -114,7 +114,7 @@ describe('POST /api/auth/sign-up', () => {
     describe('TC-SIGNUP-008 : Inscription réussie (201)', () => {
         it('should return 201 and token when signup is successful', async () => {
             prismaMock.user.findUnique.mockResolvedValue(null);
-            vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-password');
+            vi.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve('hashed-password'));
             prismaMock.user.create.mockResolvedValue(createMockUser({
                 id: 1,
                 email: 'newuser@example.com',
@@ -133,7 +133,7 @@ describe('POST /api/auth/sign-up', () => {
 
         it('should generate a valid JWT token', async () => {
             prismaMock.user.findUnique.mockResolvedValue(null);
-            vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-password');
+            vi.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve('hashed-password'));
             prismaMock.user.create.mockResolvedValue(createMockUser({
                 id: 42,
                 email: 'tokenuser@example.com',

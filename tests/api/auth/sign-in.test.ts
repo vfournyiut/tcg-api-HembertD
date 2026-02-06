@@ -50,7 +50,7 @@ describe('POST /api/auth/sign-in', () => {
     describe('TC-SIGNIN-004 : Mauvais password (401)', () => {
         it('should return 401 when password is incorrect', async () => {
             prismaMock.user.findUnique.mockResolvedValue(createMockUser());
-            vi.spyOn(bcrypt, 'compare').mockResolvedValue();
+            vi.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(false));
 
             const response = await request(app)
                 .post('/api/auth/sign-in')

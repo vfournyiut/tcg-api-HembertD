@@ -1,8 +1,4 @@
-// ═══════════════════════════════════════════════════════════════════
-// UTILITAIRES DE TEST PARTAGÉS - Réduisent la duplication de code
-// ═══════════════════════════════════════════════════════════════════
-
-import {vi} from 'vitest';
+import {vi, expect} from 'vitest';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import {Express} from 'express';
@@ -12,9 +8,7 @@ import {PrismaClient} from '../../src/generated/prisma/client';
 
 type CARD_TYPE = 'Grass' | 'Fire' | 'Water' | 'Bug' | 'Flying' | 'Normal' | 'Poison' | 'Electric' | 'Psychic' | 'Ground' | 'Rock' | 'Fighting' | 'Ice' | 'Ghost';
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS JWT & AUTH
-// ═══════════════════════════════════════════════════════════════════
 
 /** Génère un token JWT valide pour les tests */
 export function createValidToken(userId: number = 1, email: string = 'test@example.com'): string {
@@ -26,9 +20,7 @@ export function createExpiredToken(userId: number = 1, email: string = 'test@exa
     return jwt.sign({userId, email}, env.JWT_SECRET, {expiresIn: '-1s'});
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS MOCKS UTILISATEUR
-// ═══════════════════════════════════════════════════════════════════
 
 interface MockUser {
     id: number;
@@ -52,9 +44,7 @@ export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
     };
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS MOCKS CARTES
-// ═══════════════════════════════════════════════════════════════════
 
 interface MockCard {
     id: number;
@@ -113,9 +103,7 @@ export function createMockDeckCard(deckId: number, cardId: number, index: number
     };
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS MOCKS DECK
-// ═══════════════════════════════════════════════════════════════════
 
 interface MockDeck {
     id: number;
@@ -152,9 +140,7 @@ export function createMockDeckWithCards(userId: number = 1): MockDeck {
     } as MockDeck;
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS ASSERTIONS
-// ═══════════════════════════════════════════════════════════════════
 
 /** Assertion helper pour vérifier les réponses d'erreur */
 export function expectError(response: any, expectedStatus: number, expectedMessage?: string): void {
@@ -164,9 +150,7 @@ export function expectError(response: any, expectedStatus: number, expectedMessa
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS REQUÊTES
-// ═══════════════════════════════════════════════════════════════════
 
 /** Effectue une requête sans token d'authentification */
 export async function testWithoutAuth(
@@ -193,9 +177,7 @@ export async function testWithAuth(
     return await req;
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // HELPERS MOCK PRISMA
-// ═══════════════════════════════════════════════════════════════════
 
 /** Configure le mock pour retourner null (élément non trouvé) */
 export function mockNotFound(prismaMock: DeepMockProxy<PrismaClient>, method: keyof DeepMockProxy<PrismaClient>): void {
