@@ -6,7 +6,10 @@ import {env} from "../../env";
 declare global {
     namespace Express {
         interface Request {
-            userId?: number
+            user: {
+                email: string
+                userId: number
+            } | undefined
         }
     }
 }
@@ -29,15 +32,20 @@ export const authenticateToken = (
         const decoded = jwt.verify(token, env.JWT_SECRET) as {
             userId: number
             email: string
-        }
+        } | undefined
 
         // 3. Ajouter les infos utilisateur à la requête pour l'utiliser dans les routes
-        req.user = {
+        req.user = decoded ? {
             userId: decoded.userId,
             email: decoded.email
+        } : undefined
+
+        // 4. vérifier si l'utilisateur est connecté, sinon on retourne 403
+        if (!req.user) {
+            return res.status(403).json({error: 'Accès interdit'})
         }
 
-        // 4. Passer au prochain middleware ou à la route
+        // 5. Passer au prochain middleware ou à la route
         return next()
     } catch (error) {
         return res.status(401).json({error: 'Token invalide ou expiré'})
