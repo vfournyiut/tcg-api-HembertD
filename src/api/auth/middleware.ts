@@ -27,6 +27,7 @@ export const authenticateToken = (
         return res.status(401).json({error: 'Token manquant'})
     }
 
+
     try {
         // 2. Vérifier et décoder le token
         const decoded = jwt.verify(token, env.JWT_SECRET) as {
