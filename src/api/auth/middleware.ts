@@ -32,9 +32,8 @@ export const authenticateToken = (
         // 2. Vérifier et décoder le token
         const decoded = jwt.verify(token, env.JWT_SECRET) as {
             userId: number
-            email: string                                                                   
+            email: string
         } | undefined
-
 
         // 3. Ajouter les infos utilisateur à la requête pour l'utiliser dans les routes
         req.user = decoded ? {
