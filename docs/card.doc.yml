@@ -1,0 +1,54 @@
+# Cards - Documentation des endpoints de gestion des cartes
+
+paths:
+  /api/cards:
+    get:
+      summary: Liste toutes les cartes
+      description: |
+        Retourne la liste de toutes les cartes disponibles dans le jeu.
+        Les cartes sont triées par numéro Pokédex.
+      operationId: getAllCards
+      tags:
+        - Cards
+      security: []
+      parameters: []
+      responses:
+        '200':
+          description: Liste des cartes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+              example:
+                - id: 1
+                  name: "Bulbizarre"
+                  hp: 60
+                  attack: 49
+                  type: Grass
+                  pokedexNumber: 1
+                  imgUrl: "https://example.com/bulbizarre.png"
+                  createdAt: "2024-01-01T00:00:00.000Z"
+                  updatedAt: "2024-01-01T00:00:00.000Z"
+                - id: 2
+                  name: "Salamèche"
+                  hp: 58
+                  attack: 64
+                  type: Fire
+                  pokedexNumber: 4
+                  imgUrl: "https://example.com/salameche.png"
+                  createdAt: "2024-01-01T00:00:00.000Z"
+                  updatedAt: "2024-01-01T00:00:00.000Z"
+                - id: 3
+                  name: "Carapuce"
+                  hp: 44
+                  attack: 48
+                  type: Water
+                  pokedexNumber: 7
+                  imgUrl: "https://example.com/carapuce.png"
+                  createdAt: "2024-01-01T00:00:00.000Z"
+                  updatedAt: "2024-01-01T00:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+

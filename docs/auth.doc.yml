@@ -1,0 +1,146 @@
+# Auth - Documentation des endpoints d'authentification
+
+paths:
+  /api/auth/sign-up:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      description: |
+        Permet de créer un nouveau compte utilisateur.
+        Retourne un token JWT d'authentification.
+      operationId: signUp
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+            examples:
+              valid:
+                summary: Requête valide
+                value:
+                  email: "sacha@pokemon.com"
+                  username: "Sacha"
+                  password: "password123"
+              missingFields:
+                summary: Champs manquants
+                value:
+                  email: "sacha@pokemon.com"
+      responses:
+        '201':
+          description: Inscription réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                success:
+                  summary: Succès
+                  value:
+                    message: "Inscription réussie"
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic2FjaGFAcG9rZW1vbi5jb20iLCJpYXQiOjE3MzA0NTY3MDB9.abc123xyz"
+                    user:
+                      id: 1
+                      username: "Sacha"
+                      email: "sacha@pokemon.com"
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  summary: Champs manquants
+                  value:
+                    error: "Email, username et password sont requis"
+                invalidEmail:
+                  summary: Email invalide
+                  value:
+                    error: "Format d'email invalide"
+                weakPassword:
+                  summary: Mot de passe trop court
+                  value:
+                    error: "Le mot de passe doit contenir au moins 6 caractères"
+        '409':
+          description: Conflit - Email ou username déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                duplicateEmail:
+                  summary: Email déjà utilisé
+                  value:
+                    error: "Cet email est déjà utilisé"
+                duplicateUsername:
+                  summary: Username déjà utilisé
+                  value:
+                    error: "Ce nom d'utilisateur est déjà utilisé"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/sign-in:
+    post:
+      summary: Connexion utilisateur
+      description: |
+        Permet de se connecter avec un compte existant.
+        Retourne un token JWT d'authentification.
+      operationId: signIn
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+            examples:
+              valid:
+                summary: Requête valide
+                value:
+                  email: "sacha@pokemon.com"
+                  password: "password123"
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                success:
+                  summary: Succès
+                  value:
+                    message: "Connexion réussie"
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic2FjaGFAcG9rZW1vbi5jb20iLCJpYXQiOjE3MzA0NTY3MDB9.abc123xyz"
+                    user:
+                      id: 1
+                      username: "Sacha"
+                      email: "sacha@pokemon.com"
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  summary: Champs manquants
+                  value:
+                    error: "Email et password sont requis"
+        '401':
+          description: Authentification échouée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCredentials:
+                  summary: Identifiants invalides
+                  value:
+                    error: "Email ou mot de passe incorrect"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
