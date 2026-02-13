@@ -9,6 +9,10 @@ import {deckRouter} from "./api/deck/deck";
 import {env} from "./env";
 
 // Create Express app
+/**
+ * Application Express principale configurée avec les middlewares et routes
+ * Point d'entrée de l'API TCG (Trading Card Game)
+ */
 export const app = express()
 
 // Middlewares
@@ -25,13 +29,39 @@ app.use(express.json())
 app.use(express.static('public'))
 
 // Health check endpoint
+/**
+ * Endpoint de vérification de santé du serveur
+ * 
+ * @route GET /api/health
+ * @description Retourne le statut du serveur
+ * @returns {200} {status, message} - Serveur opérationnel
+ */
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'TCG Backend Server is running' })
 })
 
+/**
+ * Route d'inscription utilisateur
+ * @see {@link ./api/auth/sign-up}
+ */
 app.use('/api/auth/sign-up', signUpRouter)
+
+/**
+ * Route de connexion utilisateur
+ * @see {@link ./api/auth/sign-in}
+ */
 app.use('/api/auth/sign-in', signInRouter)
+
+/**
+ * Routes des cartes
+ * @see {@link ./api/cards/card}
+ */
 app.use('/api/cards', cardRouter)
+
+/**
+ * Routes des decks (CRUD)
+ * @see {@link ./api/deck/deck}
+ */
 app.use('/api/decks', deckRouter)
 
 // Start server only if this file is run directly (not imported for tests)

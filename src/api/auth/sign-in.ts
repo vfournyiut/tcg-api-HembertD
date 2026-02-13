@@ -7,7 +7,22 @@ import {env} from "../../env";
 
 export const authRouter = Router()
 
-// POST api/auth/sign-in
+/**
+ * Route de connexion avec email et password
+ * Permet à un utilisateur existant de se connecter avec son email et mot de passe
+ * 
+ * @route POST /
+ * @description Permet à un utilisateur existant de se connecter avec son email et mot de passe
+ * @param {string} req.body.email - Email de l'utilisateur (requis)
+ * @param {string} req.body.password - Mot de passe de l'utilisateur (requis)
+ * @returns {200} {message, token, user} en cas de succès
+ * @returns {400} Email et password sont requis
+ * @returns {401} Email ou mot de passe incorrect
+ * @returns {500} Erreur serveur interne
+ * @throws {400} Email et password sont requis
+ * @throws {401} Email ou mot de passe incorrect
+ * @throws {500} Erreur serveur interne
+ */
 authRouter.post('/', async (req: Request, res: Response) => {
     const {email, password} = req.body
 

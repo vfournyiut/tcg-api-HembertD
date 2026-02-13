@@ -6,7 +6,22 @@ import {authenticateToken} from "../auth/middleware";
 
 const router = Router()
 
-// DELETE /api/decks/:id
+/**
+ * Route pour supprimer un deck
+ * Supprime un deck existant (avec suppression en cascade des DeckCard)
+ * 
+ * @route DELETE /:id
+ * @description Supprime un deck existant (avec suppression en cascade des DeckCard)
+ * @param {number} req.params.id - ID du deck à supprimer (requis)
+ * @requires Token JWT d'authentification
+ * @returns {204} Suppression réussie (sans contenu)
+ * @returns {400} ID de deck invalide
+ * @returns {404} Deck non trouvé ou n'appartient pas à l'utilisateur
+ * @returns {500} Erreur lors de la suppression du deck
+ * @throws {400} ID de deck invalide
+ * @throws {404} Deck non trouvé
+ * @throws {500} Erreur lors de la suppression du deck
+ */
 router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
     const deckId : number = parseInt(req.params.id)
     const userId = req.user?.userId
