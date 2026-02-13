@@ -46,7 +46,7 @@ async function main() {
   const pokemonJson = readFileSync(pokemonDataPath, 'utf-8')
   const pokemonData: CardModel[] = JSON.parse(pokemonJson)
 
-  const createdCards = await Promise.all(
+  const _createdCards = await Promise.all(
     pokemonData.map((pokemon) =>
       prisma.card.create({
         data: {
