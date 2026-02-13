@@ -1,7 +1,8 @@
 import {Request, Response, Router} from 'express'
+
 import {prisma} from "../../database";
-import {authenticateToken} from "../auth/middleware";
 import { CardModel, DeckModel } from '../../generated/prisma/models';
+import {authenticateToken} from "../auth/middleware";
 
 const router = Router()
 

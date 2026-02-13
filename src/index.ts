@@ -1,11 +1,12 @@
-import {createServer} from "http";
-import {env} from "./env";
-import express from "express";
 import cors from "cors";
-import {authRouter as signUpRouter} from "./api/auth/sign-up";
+import express from "express";
+import {createServer} from "http";
+
 import {authRouter as signInRouter} from "./api/auth/sign-in";
+import {authRouter as signUpRouter} from "./api/auth/sign-up";
 import {cardRouter} from "./api/cards/card";
 import {deckRouter} from "./api/deck/deck";
+import {env} from "./env";
 
 // Create Express app
 export const app = express()

@@ -1,8 +1,9 @@
 import {Router} from 'express'
-import getRouter from './get'
-import postRouter from './post'
-import patchRouter from './patch'
+
 import deleteRouter from './delete'
+import getRouter from './get'
+import patchRouter from './patch'
+import postRouter from './post'
 
 export const deckRouter = Router()
 
