@@ -20,14 +20,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Clean npm cache
         run: npm cache clean --force
 
       - name: Install dependencies
         run: |
-          rm -rf node_modules package-lock.json
+          rm -rf node_modules
           npm install
 
       - name: Generate Prisma Client
@@ -37,6 +37,12 @@ jobs:
 
       - name: Run TypeScript type check
         run: npm run ts:check
+
+      - name: Lint project
+        run: npm run lint
+
+      - name: Format
+        run: npm run format
 
       - name: Build project
         run: npm run build
