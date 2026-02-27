@@ -1,0 +1,379 @@
+openapi: 3.0.3
+info:
+  title: TCG API
+  version: 1.0.0
+  description: |
+    API pour une application de jeu de cartes à collectionner (type Pokemon).
+    
+    ## Fonctionnalités
+    - Authentification utilisateur (inscription/connexion)
+    - Gestion des cartes (liste)
+    - Gestion des decks (CRUD complet)
+    
+    ## Authentification
+    L'API utilise l'authentification JWT Bearer. Pour les routes protégées :
+    1. Utilisez le endpoint `/api/auth/sign-in` pour obtenir un token
+    2. Cliquez sur le bouton "Authorize" en haut de la page
+    3. Entrez le token au format `Bearer <votre_token>`
+
+servers:
+  - url: http://localhost:3001
+    description: Serveur de développement
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de l'utilisateur
+          example: 1
+        username:
+          type: string
+          description: Nom d'utilisateur unique
+          example: "Sacha"
+        email:
+          type: string
+          format: email
+          description: Adresse email de l'utilisateur
+          example: "sacha@pokemon.com"
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création du compte
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière modification
+      required:
+        - id
+        - username
+        - email
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la carte
+          example: 1
+        name:
+          type: string
+          description: Nom de la carte
+          example: "Pikachu"
+        hp:
+          type: integer
+          description: Points de vie de la carte
+          example: 60
+        attack:
+          type: integer
+          description: Points d'attaque de la carte
+          example: 55
+        type:
+          type: string
+          enum:
+            - Normal
+            - Fire
+            - Water
+            - Electric
+            - Grass
+            - Ice
+            - Fighting
+            - Poison
+            - Ground
+            - Flying
+            - Psychic
+            - Bug
+            - Rock
+            - Ghost
+            - Dragon
+            - Dark
+            - Steel
+            - Fairy
+          description: Type elemental de la carte
+          example: "Electric"
+        pokedexNumber:
+          type: integer
+          description: Numéro dans le Pokédex
+          example: 25
+        imgUrl:
+          type: string
+          nullable: true
+          description: URL de l'image de la carte
+          example: "https://example.com/pikachu.png"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - hp
+        - attack
+        - type
+        - pokedexNumber
+
+    DeckCard:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la relation deck-carte
+          example: 1
+        deckId:
+          type: integer
+          description: Identifiant du deck
+          example: 1
+        cardId:
+          type: integer
+          description: Identifiant de la carte
+          example: 1
+        card:
+          $ref: '#/components/schemas/Card'
+      required:
+        - id
+        - deckId
+        - cardId
+        - card
+
+    Deck:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique du deck
+          example: 1
+        name:
+          type: string
+          description: Nom du deck
+          example: "Mon Deck"
+        userId:
+          type: integer
+          description: Identifiant du propriétaire du deck
+          example: 1
+        cards:
+          type: array
+          description: Liste des cartes dans le deck
+          items:
+            $ref: '#/components/schemas/DeckCard'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - userId
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur
+          example: "Erreur serveur"
+
+    SignUpRequest:
+      type: object
+      required:
+        - email
+        - username
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Adresse email de l'utilisateur
+          example: "sacha@pokemon.com"
+        username:
+          type: string
+          description: Nom d'utilisateur (minimum 3 caractères)
+          example: "Sacha"
+        password:
+          type: string
+          format: password
+          description: Mot de passe (minimum 6 caractères)
+          example: "password123"
+      example:
+        email: "sacha@pokemon.com"
+        username: "Sacha"
+        password: "password123"
+
+    SignInRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Adresse email de l'utilisateur
+          example: "sacha@pokemon.com"
+        password:
+          type: string
+          format: password
+          description: Mot de passe de l'utilisateur
+          example: "password123"
+      example:
+        email: "sacha@pokemon.com"
+        password: "password123"
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message de succès
+          example: "Inscription réussie"
+        token:
+          type: string
+          description: JWT token d'authentification
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic2FjaGFAcG9rZW1vbi5jb20iLCJpYXQiOjE3MzA0NTY3MDB9.abc123xyz"
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: "Sacha"
+            email:
+              type: string
+              example: "sacha@pokemon.com"
+      example:
+        message: "Inscription réussie"
+        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic2FjaGFAcG9rZW1vbi5jb20iLCJpYXQiOjE3MzA0NTY3MDB9.abc123xyz"
+        user:
+          id: 1
+          username: "Sacha"
+          email: "sacha@pokemon.com"
+
+    CreateDeckRequest:
+      type: object
+      required:
+        - name
+        - cards
+      properties:
+        name:
+          type: string
+          description: Nom du deck
+          example: "Mon Super Deck"
+        cards:
+          type: array
+          items:
+            type: integer
+          description: Tableau d'IDs de cartes (exactement 10 cartes requises)
+          minItems: 10
+          maxItems: 10
+          example: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      example:
+        name: "Mon Super Deck"
+        cards: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    UpdateDeckRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nouveau nom du deck
+          example: "Nouveau Nom"
+        cards:
+          type: array
+          items:
+            type: integer
+          description: Nouveau tableau d'IDs de cartes (exactement 10 cartes requises)
+          minItems: 10
+          maxItems: 10
+          example: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+      example:
+        name: "Nouveau Nom"
+        cards: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+    CardsArrayResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Card'
+      description: Tableau de cartes
+
+  parameters:
+    deckId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant unique du deck
+      schema:
+        type: integer
+        example: 1
+
+  responses:
+    UnauthorizedError:
+      description: Token d'authentification manquant ou invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Token manquant"
+
+    ForbiddenError:
+      description: Accès interdit (token valide mais permissions insuffisantes)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Accès interdit"
+
+    NotFoundError:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Deck non trouvé"
+
+    BadRequestError:
+      description: Données de requête invalides
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Name et cards (array) sont requis"
+
+    ConflictError:
+      description: Conflit (ressource déjà existante)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Cet email est déjà utilisé"
+
+    InternalServerError:
+      description: Erreur serveur interne
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Erreur serveur"
+
+# Security global - sera écrasé par les routes spécifiques
+security: []
+

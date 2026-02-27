@@ -1,0 +1,298 @@
+# Deck - Documentation des endpoints de gestion des decks
+
+paths:
+  /api/decks/mine:
+    get:
+      summary: Liste les decks de l'utilisateur connecté
+      description: |
+        Retourne la liste de tous les decks appartenant à l'utilisateur authentifié.
+        Chaque deck inclut les cartes associées.
+      operationId: getMyDecks
+      tags:
+        - Decks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des decks récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deck'
+              example:
+                - id: 1
+                  name: "Mon Deck"
+                  userId: 1
+                  cards:
+                    - id: 1
+                      deckId: 1
+                      cardId: 1
+                      card:
+                        id: 1
+                        name: "Pikachu"
+                        hp: 60
+                        attack: 55
+                        type: Electric
+                        pokedexNumber: 25
+                        imgUrl: "https://example.com/pikachu.png"
+                        createdAt: "2024-01-01T00:00:00.000Z"
+                        updatedAt: "2024-01-01T00:00:00.000Z"
+                  createdAt: "2024-01-01T00:00:00.000Z"
+                  updatedAt: "2024-01-01T00:00:00.000Z"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/decks/{id}:
+    get:
+      summary: Récupère un deck par son ID
+      description: |
+        Retourne les détails d'un deck spécifique.
+        L'utilisateur ne peut accéder qu'à ses propres decks.
+      operationId: getDeckById
+      tags:
+        - Decks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du deck
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Deck récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deck'
+              example:
+                id: 1
+                name: "Mon Deck"
+                userId: 1
+                cards:
+                  - id: 1
+                    deckId: 1
+                    cardId: 1
+                    card:
+                      id: 1
+                      name: "Pikachu"
+                      hp: 60
+                      attack: 55
+                      type: Electric
+                      pokedexNumber: 25
+                      imgUrl: "https://example.com/pikachu.png"
+                createdAt: "2024-01-01T00:00:00.000Z"
+                updatedAt: "2024-01-01T00:00:00.000Z"
+        '400':
+          description: ID de deck invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "ID de deck invalide"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      summary: Met à jour un deck existant
+      description: |
+        Permet de modifier le nom et/ou les cartes d'un deck.
+        Le deck doit appartenir à l'utilisateur authentifié.
+      operationId: updateDeck
+      tags:
+        - Decks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du deck
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeckRequest'
+            examples:
+              updateName:
+                summary: Modifier le nom
+                value:
+                  name: "Nouveau Nom"
+              updateCards:
+                summary: Modifier les cartes
+                value:
+                  cards: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+              updateBoth:
+                summary: Modifier nom et cartes
+                value:
+                  name: "Deck Optimisé"
+                  cards: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+      responses:
+        '200':
+          description: Deck mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deck'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidId:
+                  summary: ID invalide
+                  value:
+                    error: "ID de deck invalide"
+                invalidCardsFormat:
+                  summary: Format cards invalide
+                  value:
+                    error: "Cards doit être un array"
+                wrongCardCount:
+                  summary: Nombre de cartes incorrect
+                  value:
+                    error: "Un deck doit contenir exactement 10 cartes"
+                invalidCards:
+                  summary: Cartes inexistantes
+                  value:
+                    error: "Certaines cartes fournies n'existent pas"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Supprime un deck
+      description: |
+        Supprime définitivement un deck.
+        L'utilisateur ne peut supprimer que ses propres decks.
+      operationId: deleteDeck
+      tags:
+        - Decks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du deck
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '204':
+          description: Deck supprimé avec succès
+        '400':
+          description: ID de deck invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "ID de deck invalide"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/decks:
+    post:
+      summary: Crée un nouveau deck
+      description: |
+        Crée un nouveau deck avec un nom et 10 cartes.
+        Le deck est associé à l'utilisateur authentifié.
+      operationId: createDeck
+      tags:
+        - Decks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeckRequest'
+            examples:
+              valid:
+                summary: Requête valide
+                value:
+                  name: "Mon Super Deck"
+                  cards: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+              missingName:
+                summary: Nom manquant
+                value:
+                  cards: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+              missingCards:
+                summary: Cartes manquantes
+                value:
+                  name: "Mon Deck"
+      responses:
+        '201':
+          description: Deck créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deck'
+              example:
+                id: 1
+                name: "Mon Super Deck"
+                userId: 1
+                cards:
+                  - id: 1
+                    deckId: 1
+                    cardId: 1
+                    card:
+                      id: 1
+                      name: "Pikachu"
+                      hp: 60
+                      attack: 55
+                      type: Electric
+                      pokedexNumber: 25
+                      imgUrl: "https://example.com/pikachu.png"
+                createdAt: "2024-01-01T00:00:00.000Z"
+                updatedAt: "2024-01-01T00:00:00.000Z"
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  summary: Champs manquants
+                  value:
+                    error: "Name et cards (array) sont requis"
+                wrongCardCount:
+                  summary: Nombre de cartes incorrect
+                  value:
+                    error: "Un deck doit contenir exactement 10 cartes"
+                invalidCards:
+                  summary: Cartes inexistantes
+                  value:
+                    error: "Certaines cartes fournies n'existent pas"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
