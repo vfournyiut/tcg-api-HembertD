@@ -9,6 +9,9 @@ import { CardModel } from '../src/generated/prisma/models/Card'
 async function main() {
   console.log('🌱 Starting database seed...')
 
+  // Delete in correct order to respect foreign key constraints
+  await prisma.deckCard.deleteMany()
+  await prisma.deck.deleteMany()
   await prisma.card.deleteMany()
   await prisma.user.deleteMany()
 
@@ -46,7 +49,8 @@ async function main() {
   const pokemonJson = readFileSync(pokemonDataPath, 'utf-8')
   const pokemonData: CardModel[] = JSON.parse(pokemonJson)
 
-  const _createdCards = await Promise.all(
+  // Create cards and get their actual IDs
+  const createdCards = await Promise.all(
     pokemonData.map((pokemon) =>
       prisma.card.create({
         data: {
@@ -61,7 +65,54 @@ async function main() {
     ),
   )
 
-  console.log(`✅ Created ${pokemonData.length} Pokemon cards`)
+  console.log(`✅ Created ${createdCards.length} Pokemon cards`)
+
+  // Get the first 10 card IDs for the starter decks
+  // Using cards with pokedex numbers 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  // which correspond to the first 10 cards in the array
+  const starterCardIds = createdCards
+    .filter((card) => card.pokedexNumber >= 1 && card.pokedexNumber <= 10)
+    .map((card) => card.id)
+
+  if (starterCardIds.length < 10) {
+    throw new Error('Not enough cards created for starter decks')
+  }
+
+  // Create deck for Red (userId: 1)
+  const redDeck = await prisma.deck.create({
+    data: {
+      name: 'Starter Deck Red',
+      userId: redUser.id,
+      cards: {
+        create: starterCardIds.map((cardId) => ({
+          cardId: cardId,
+        })),
+      },
+    },
+    include: { cards: true },
+  })
+
+  // Create deck for Blue (userId: 2)
+  const blueDeck = await prisma.deck.create({
+    data: {
+      name: 'Starter Deck Blue',
+      userId: blueUser.id,
+      cards: {
+        create: starterCardIds.map((cardId) => ({
+          cardId: cardId,
+        })),
+      },
+    },
+    include: { cards: true },
+  })
+
+  console.log(`✅ Created starter decks:`)
+  console.log(
+    `   - Deck ID ${redDeck.id} for Red (${redDeck.cards.length} cards)`,
+  )
+  console.log(
+    `   - Deck ID ${blueDeck.id} for Blue (${blueDeck.cards.length} cards)`,
+  )
 
   console.log('\n🎉 Database seeding completed!')
 }
