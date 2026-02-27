@@ -1,9 +1,9 @@
 import cors from "cors";
 import express from "express";
-import {createServer} from "http";
 import * as fs from "fs";
-import * as path from "path";
+import {createServer} from "http";
 import * as yaml from "js-yaml";
+import * as path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import { authRouter as signInRouter } from './api/auth/sign-in'
