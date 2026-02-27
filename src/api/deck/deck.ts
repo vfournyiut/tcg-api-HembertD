@@ -1,4 +1,4 @@
-import {Router} from 'express'
+import { Router } from 'express'
 
 import deleteRouter from './delete'
 import getRouter from './get'
@@ -15,4 +15,3 @@ deckRouter.use(getRouter)
 deckRouter.use(postRouter)
 deckRouter.use(patchRouter)
 deckRouter.use(deleteRouter)
-

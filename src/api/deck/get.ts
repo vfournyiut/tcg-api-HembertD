@@ -1,8 +1,8 @@
-import {Request, Response, Router} from 'express'
+import { Request, Response, Router } from 'express'
 
-import {prisma} from "../../database";
-import { DeckModel } from '../../generated/prisma/models';
-import {authenticateToken} from "../auth/middleware";
+import { prisma } from '../../database'
+import { DeckModel } from '../../generated/prisma/models'
+import { authenticateToken } from '../auth/middleware'
 
 const router = Router()
 
@@ -18,30 +18,30 @@ const router = Router()
  * @throws {500} Erreur lors de la récupération des decks
  */
 router.get('/mine', authenticateToken, async (req: Request, res: Response) => {
-    const userId = req.user?.userId
+  const userId = req.user?.userId
 
-    try {
-        const decks: DeckModel[] = await prisma.deck.findMany({
-            where: {
-                userId: userId!,
-            },
-            include: {
-                cards: {
-                    include: {
-                        card: true,
-                    },
-                },
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        })
+  try {
+    const decks: DeckModel[] = await prisma.deck.findMany({
+      where: {
+        userId: userId!,
+      },
+      include: {
+        cards: {
+          include: {
+            card: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
 
-        return res.status(200).json(decks)
-    } catch (error) {
-        console.error('Erreur lors de la récupération des decks:', error)
-        return res.status(500).json({error: 'Erreur serveur'})
-    }
+    return res.status(200).json(decks)
+  } catch (error) {
+    console.error('Erreur lors de la récupération des decks:', error)
+    return res.status(500).json({ error: 'Erreur serveur' })
+  }
 })
 
 /**
@@ -61,38 +61,37 @@ router.get('/mine', authenticateToken, async (req: Request, res: Response) => {
  * @throws {500} Erreur lors de la récupération du deck
  */
 router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
-    const deckId : number = parseInt(req.params.id)
-    const userId = req.user?.userId
+  const deckId: number = parseInt(req.params.id)
+  const userId = req.user?.userId
 
-    if (isNaN(deckId)) {
-        return res.status(400).json({error: 'ID de deck invalide'})
+  if (isNaN(deckId)) {
+    return res.status(400).json({ error: 'ID de deck invalide' })
+  }
+
+  try {
+    const deck: DeckModel | null = await prisma.deck.findUnique({
+      where: {
+        id: deckId,
+        userId: userId,
+      },
+      include: {
+        cards: {
+          include: {
+            card: true,
+          },
+        },
+      },
+    })
+
+    if (!deck) {
+      return res.status(404).json({ error: 'Deck non trouvé' })
     }
 
-    try {
-        const deck: DeckModel | null = await prisma.deck.findUnique({
-            where: {
-                id: deckId,
-                userId: userId,
-            },
-            include: {
-                cards: {
-                    include: {
-                        card: true,
-                    },
-                },
-            },
-        })
-
-        if (!deck) {
-            return res.status(404).json({error: 'Deck non trouvé'})
-        }
-
-        return res.status(200).json(deck)
-    } catch (error) {
-        console.error('Erreur lors de la récupération du deck:', error)
-        return res.status(500).json({error: 'Erreur serveur'})
-    }
+    return res.status(200).json(deck)
+  } catch (error) {
+    console.error('Erreur lors de la récupération du deck:', error)
+    return res.status(500).json({ error: 'Erreur serveur' })
+  }
 })
 
 export default router
-
