@@ -7,6 +7,9 @@ import { PokemonType } from '../generated/prisma/client'
 
 /**
  * Retourne la faiblesse principale d'un type Pokemon
+ * 
+ * @param {PokemonType} defenderType - Type du Pokémon défenseur
+ * @returns {PokemonType | null} Le type de faiblesse (PokemonType) ou null si non défini
  */
 export function getWeakness(defenderType: PokemonType): PokemonType | null {
   switch (defenderType) {
@@ -53,6 +56,10 @@ export function getWeakness(defenderType: PokemonType): PokemonType | null {
 
 /**
  * Calcule le multiplicateur de dégâts selon les types
+ * 
+ * @param {PokemonType} attackerType - Type de l'attaquant
+ * @param {PokemonType} defenderType - Type du défenseur
+ * @returns {number} 2.0 si super efficace, 1.0 sinon
  */
 export function getDamageMultiplier(
   attackerType: PokemonType,
@@ -70,6 +77,11 @@ export function getDamageMultiplier(
 
 /**
  * Calcule les dégâts infligés lors d'une attaque
+ * 
+ * @param {number} attackerAttack - Points d'attaque de l'attaquant
+ * @param {PokemonType} attackerType - Type de l'attaquant
+ * @param {PokemonType} defenderType - Type du défenseur
+ * @returns {number} Dégâts calculés (minimum 1)
  */
 export function calculateDamage(
   attackerAttack: number,

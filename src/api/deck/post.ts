@@ -6,7 +6,25 @@ import { authenticateToken } from '../auth/middleware'
 
 const router = Router()
 
-// POST /api/decks
+/**
+ * Route pour créer un nouveau deck
+ * Crée un nouveau deck pour l'utilisateur avec 10 cartes sélectionnées
+ * 
+ * @route POST /
+ * @description Crée un nouveau deck pour l'utilisateur avec 10 cartes sélectionnées
+ * @param {string} req.body.name - Nom du deck (requis)
+ * @param {number[]} req.body.cards - Tableau d'IDs de cartes (requis, exactement 10 cartes)
+ * @requires Token JWT d'authentification
+ * @returns {201} Le DeckModel créé incluant les cartes
+ * @returns {400} Name et cards manquants
+ * @returns {400} Le deck ne contient pas exactement 10 cartes
+ * @returns {400} Certaines cartes n'existent pas
+ * @returns {500} Erreur lors de la création du deck
+ * @throws {400} Name et cards (array) sont requis
+ * @throws {400} Un deck doit contenir exactement 10 cartes
+ * @throws {400} Certaines cartes fournies n'existent pas
+ * @throws {500} Erreur lors de la création du deck
+ */
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
   const name: string = req.body.name
   const cards: number[] = req.body.cards

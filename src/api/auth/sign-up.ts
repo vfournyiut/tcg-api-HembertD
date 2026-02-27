@@ -7,7 +7,29 @@ import { env } from '../../env'
 
 export const authRouter = Router()
 
-// POST /api/auth/sign-up (router mounted at /api/auth/sign-up)
+/**
+ * Route d'inscription avec email, username et password
+ * Crée un nouveau compte utilisateur avec validation des données
+ * 
+ * @route POST /
+ * @description Crée un nouveau compte utilisateur avec validation des données
+ * @param {string} req.body.email - Email de l'utilisateur (requis)
+ * @param {string} req.body.username - Nom d'utilisateur (requis)
+ * @param {string} req.body.password - Mot de passe (requis, min 6 caractères)
+ * @returns {201} {message, token, user} en cas de succès
+ * @returns {400} Données manquantes
+ * @returns {400} Format d'email invalide
+ * @returns {400} Mot de passe < 6 caractères
+ * @returns {409} Email déjà utilisé
+ * @returns {409} Username déjà utilisé
+ * @returns {500} Erreur serveur interne
+ * @throws {400} Email, username et password sont requis
+ * @throws {400} Format d'email invalide
+ * @throws {400} Le mot de passe doit contenir au moins 6 caractères
+ * @throws {409} Cet email est déjà utilisé
+ * @throws {409} Ce nom d'utilisateur est déjà utilisé
+ * @throws {500} Erreur serveur interne
+ */
 authRouter.post('/', async (req: Request, res: Response) => {
   const { email, username, password } = req.body
 
