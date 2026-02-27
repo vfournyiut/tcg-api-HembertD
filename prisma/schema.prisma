@@ -70,3 +70,21 @@ model DeckCard {
 
   @@unique([deckId, cardId])
 }
+
+enum RoomStatus {
+  WAITING     // En attente d'un second joueur
+  IN_PROGRESS // Partie en cours
+  FINISHED    // Partie terminée
+}
+
+model Room {
+  id           Int        @id @default(autoincrement())
+  name         String?    // Nom de la room (optionnel)
+  hostId       Int        // ID de l'utilisateur host
+  hostDeckId   Int        // ID du deck du host
+  player2Id    Int?       // ID du second joueur (null si en attente)
+  player2DeckId Int?      // ID du deck du second joueur
+  status       RoomStatus // État de la room
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}

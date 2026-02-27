@@ -12,6 +12,7 @@ import { authRouter as signUpRouter } from './api/auth/sign-up'
 import { cardRouter } from './api/cards/card'
 import { deckRouter } from './api/deck/deck'
 import { env } from './env'
+import { registerMatchmakingHandlers } from './socket/matchmaking'
 import { socketAuthMiddleware } from './socket/middleware'
 
 // Create Express app
@@ -218,6 +219,9 @@ if (require.main === module) {
   // Apply authentication middleware to all Socket.io connections
   io.use(socketAuthMiddleware);
 
+  // Register matchmaking handlers
+  registerMatchmakingHandlers(io);
+
   // Handle authenticated connections
   io.on('connection', (socket) => {
     console.log(`✅ Utilisateur connecté: ${socket.user?.email} (ID: ${socket.user?.userId})`);
@@ -226,11 +230,6 @@ if (require.main === module) {
     socket.on('disconnect', (reason) => {
       console.log(`❌ Utilisateur déconnecté: ${socket.user?.email} - Raison: ${reason}`);
     });
-
-    // TODO: Add game event handlers here
-    // Examples:
-    // - socket.join('room:123')
-    // - socket.on('game:action', (data) => handleGameAction(socket, data))
   });
 
   // Start server
