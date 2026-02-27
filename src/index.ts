@@ -4,6 +4,7 @@ import * as fs from "fs";
 import {createServer} from "http";
 import * as yaml from "js-yaml";
 import * as path from "path";
+import {Server} from "socket.io";
 import swaggerUi from "swagger-ui-express";
 
 import { authRouter as signInRouter } from './api/auth/sign-in'
@@ -11,6 +12,7 @@ import { authRouter as signUpRouter } from './api/auth/sign-up'
 import { cardRouter } from './api/cards/card'
 import { deckRouter } from './api/deck/deck'
 import { env } from './env'
+import { socketAuthMiddleware } from './socket/middleware'
 
 // Create Express app
 /**
@@ -205,6 +207,32 @@ if (require.main === module) {
   // Create HTTP server
   const httpServer = createServer(app)
 
+  // Create Socket.io server with CORS configuration
+  const io = new Server(httpServer, {
+    cors: {
+      origin: true,
+      credentials: true,
+    },
+  });
+
+  // Apply authentication middleware to all Socket.io connections
+  io.use(socketAuthMiddleware);
+
+  // Handle authenticated connections
+  io.on('connection', (socket) => {
+    console.log(`✅ Utilisateur connecté: ${socket.user?.email} (ID: ${socket.user?.userId})`);
+
+    // Handle disconnection
+    socket.on('disconnect', (reason) => {
+      console.log(`❌ Utilisateur déconnecté: ${socket.user?.email} - Raison: ${reason}`);
+    });
+
+    // TODO: Add game event handlers here
+    // Examples:
+    // - socket.join('room:123')
+    // - socket.on('game:action', (data) => handleGameAction(socket, data))
+  });
+
   // Start server
   try {
     httpServer.listen(env.PORT, () => {
@@ -212,6 +240,7 @@ if (require.main === module) {
       console.log(
         `🧪 Socket.io Test Client available at http://localhost:${env.PORT}`,
       )
+      console.log(`🔐 Socket.io auth middleware enabled`)
     })
   } catch (error) {
     console.error('Failed to start server:', error)

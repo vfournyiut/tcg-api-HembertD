@@ -24,9 +24,7 @@ export default defineConfig({
         'src/index.ts',
         'src/docs/**',
         'tests/**',
-        'src/sockets/**',
         'src/models/**',
-        'src/utils/**',
         'src/types/**',
       ],
       thresholds: {
