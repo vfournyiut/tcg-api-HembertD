@@ -155,7 +155,7 @@ export function getClientGameState(
  */
 export function emitGameState(
   io: Server,
-  roomId: number,
+  _roomId: number,
   serverState: ServerGameState
 ): void {
   const hostState = getClientGameState(serverState, 'host');
