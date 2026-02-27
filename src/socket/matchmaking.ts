@@ -153,7 +153,7 @@ async function createGameState(
 async function handleCreateRoom(socket: AuthenticatedSocket, data: CreateRoomPayload, io: Server): Promise<void> {
   const userId = socket.user?.userId;
   const userEmail = socket.user?.email ?? 'Unknown';
-  const { deckId } = data;
+  const deckId = Number(data.deckId);
 
   if (userId === undefined) {
     socket.emit('error', { message: 'Utilisateur non authentifié', code: 401 });
@@ -224,7 +224,8 @@ async function handleGetRooms(_socket: AuthenticatedSocket, io: Server): Promise
 
 async function handleJoinRoom(socket: AuthenticatedSocket, data: JoinRoomPayload, io: Server): Promise<void> {
   const userId = socket.user?.userId;
-  const { roomId, deckId } = data;
+  const roomId = Number(data.roomId);
+  const deckId = Number(data.deckId);
 
   if (userId === undefined) {
     socket.emit('error', { message: 'Utilisateur non authentifié', code: 401 });
