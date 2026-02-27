@@ -1,5 +1,5 @@
-import { Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import { Socket } from 'socket.io';
 
 import { env } from '../env';
 
