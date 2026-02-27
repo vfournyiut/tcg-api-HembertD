@@ -1,12 +1,16 @@
 import { Server, Socket } from 'socket.io';
 
 import { prisma } from '../database';
-import type { CreateRoomPayload, GameCard,GameState, JoinRoomPayload, Room } from '../types/room';
+import type { CreateRoomPayload, GameCard, JoinRoomPayload, Room } from '../types/room';
+import { initializeGame, updateGameUserIds } from './game';
 import { AuthenticatedSocket } from './middleware';
 
 interface RoomWithHost extends Room {
   hostUsername: string;
 }
+
+// Map pour stocker les socket IDs des créateurs de room
+const roomHostSockets = new Map<number, string>();
 
 export async function validateDeck(deckId: number, userId: number): Promise<{ valid: boolean; deck?: { id: number; cards: { cardId: number }[] }; error?: string }> {
   if (!deckId || isNaN(deckId)) {
@@ -72,84 +76,6 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-async function createGameState(
-  roomId: number,
-  hostDeckId: number,
-  player2DeckId: number
-): Promise<{ hostGameState: GameState; player2GameState: GameState }> {
-  const hostDeck = await prisma.deck.findUnique({
-    where: { id: hostDeckId },
-    include: { cards: { include: { card: true } } },
-  });
-
-  const player2Deck = await prisma.deck.findUnique({
-    where: { id: player2DeckId },
-    include: { cards: { include: { card: true } } },
-  });
-
-  if (!hostDeck || !player2Deck) {
-    throw new Error('Deck non trouvé');
-  }
-
-  const hostCards: GameCard[] = hostDeck.cards.map((dc) => ({
-    id: dc.card.id,
-    name: dc.card.name,
-    hp: dc.card.hp,
-    attack: dc.card.attack,
-    type: dc.card.type,
-    pokedexNumber: dc.card.pokedexNumber,
-    imgUrl: dc.card.imgUrl,
-  }));
-
-  const player2Cards: GameCard[] = player2Deck.cards.map((dc) => ({
-    id: dc.card.id,
-    name: dc.card.name,
-    hp: dc.card.hp,
-    attack: dc.card.attack,
-    type: dc.card.type,
-    pokedexNumber: dc.card.pokedexNumber,
-    imgUrl: dc.card.imgUrl,
-  }));
-
-  const shuffledHostCards = shuffleArray(hostCards);
-  const shuffledPlayer2Cards = shuffleArray(player2Cards);
-
-  const initialHandSize = 0;
-  const initialDeckSize = 10;
-
-  const hostGameState: GameState = {
-    gameId: roomId,
-    roomId,
-    player: 'host',
-    hand: shuffledHostCards.slice(0, initialHandSize),
-    handSize: initialHandSize,
-    deckSize: initialDeckSize,
-    opponentHandSize: initialHandSize,
-    opponentDeckSize: initialDeckSize,
-    currentTurn: 'host',
-    turnNumber: 1,
-    gameStatus: 'PLAYING',
-    winner: null,
-  };
-
-  const player2GameState: GameState = {
-    gameId: roomId,
-    roomId,
-    player: 'player2',
-    hand: shuffledPlayer2Cards.slice(0, initialHandSize),
-    handSize: initialHandSize,
-    deckSize: initialDeckSize,
-    opponentHandSize: initialHandSize,
-    opponentDeckSize: initialDeckSize,
-    currentTurn: 'host',
-    turnNumber: 1,
-    gameStatus: 'PLAYING',
-    winner: null,
-  };
-
-  return { hostGameState, player2GameState };
-}
-
 async function handleCreateRoom(socket: AuthenticatedSocket, data: CreateRoomPayload, io: Server): Promise<void> {
   const userId = socket.user?.userId;
   const userEmail = socket.user?.email ?? 'Unknown';
@@ -200,6 +126,9 @@ async function handleCreateRoom(socket: AuthenticatedSocket, data: CreateRoomPay
       status: room.status as 'WAITING' | 'IN_PROGRESS' | 'FINISHED',
       createdAt: room.createdAt,
     };
+
+    // Stocker le socket ID du host pour cette room
+    roomHostSockets.set(room.id, socket.id);
 
     socket.emit('roomCreated', { room: roomResponse });
 
@@ -278,16 +207,71 @@ async function handleJoinRoom(socket: AuthenticatedSocket, data: JoinRoomPayload
 
     socket.join(`room:${roomId}`);
 
-    const { hostGameState, player2GameState } = await createGameState(
-      roomId,
-      room.hostDeckId,
-      deckId
-    );
+    try {
+      // Récupérer les decks complets et les mélanger
+      const hostFullDeck = await prisma.deck.findUnique({
+        where: { id: room.hostDeckId },
+        include: { cards: { include: { card: true } } },
+      });
+      const player2FullDeck = await prisma.deck.findUnique({
+        where: { id: deckId },
+        include: { cards: { include: { card: true } } },
+      });
 
-    io.to(`room:${roomId}`).emit('gameStarted', {
-      host: hostGameState,
-      player2: player2GameState,
-    });
+      if (!hostFullDeck || !player2FullDeck) {
+        throw new Error('Deck non trouvé');
+      }
+
+      // Convertir en GameCard et mélanger
+      const hostCards: GameCard[] = shuffleArray(hostFullDeck.cards.map((dc) => ({
+        id: dc.card.id,
+        name: dc.card.name,
+        hp: dc.card.hp,
+        attack: dc.card.attack,
+        type: dc.card.type,
+        pokedexNumber: dc.card.pokedexNumber,
+        imgUrl: dc.card.imgUrl,
+      })));
+
+      const player2Cards: GameCard[] = shuffleArray(player2FullDeck.cards.map((dc) => ({
+        id: dc.card.id,
+        name: dc.card.name,
+        hp: dc.card.hp,
+        attack: dc.card.attack,
+        type: dc.card.type,
+        pokedexNumber: dc.card.pokedexNumber,
+        imgUrl: dc.card.imgUrl,
+      })));
+
+      // Récupérer le socket ID du host
+      const hostSocketId = roomHostSockets.get(roomId) || '';
+      const player2SocketId = socket.id;
+
+      // Initialiser le jeu avec les decks mélangés
+      initializeGame(
+        roomId,
+        hostSocketId,
+        player2SocketId,
+        hostCards,
+        player2Cards
+      );
+
+      // Mettre à jour les userIds
+      updateGameUserIds(roomId, room.hostId, userId);
+
+      // Nettoyer la map
+      roomHostSockets.delete(roomId);
+
+      // Émettre gameStarted avec les nouveaux états
+      io.to(`room:${roomId}`).emit('gameStarted', {
+        roomId,
+        message: 'La partie commence !',
+      });
+    } catch (gameError) {
+      console.error('Erreur lors de la rejoint de la room:', gameError);
+      socket.emit('error', { message: 'Erreur lors de la rejoint de la room', code: 500 });
+      return;
+    }
 
     const waitingRooms = await getWaitingRooms();
     io.emit('roomsListUpdated', { rooms: waitingRooms });
@@ -320,6 +304,11 @@ export function registerMatchmakingHandlers(io: Server): void {
       if (roomId) {
         socket.leave(`room:${roomId}`);
       }
+    });
+
+    socket.on('disconnect', () => {
+      // La gestion de la déconnexion pendant une partie est gérée dans game.ts
+      console.log(`Socket déconnecté du matchmaking: ${socket.id}`);
     });
   });
 }

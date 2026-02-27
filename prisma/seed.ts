@@ -5,15 +5,31 @@ import { join } from 'path'
 import { prisma } from '../src/database'
 import { PokemonType } from '../src/generated/prisma/enums'
 import { CardModel } from '../src/generated/prisma/models/Card'
+import { resetAllGames } from '../src/socket/game'
 
 async function main() {
   console.log('🌱 Starting database seed...')
 
+  // Reset in-memory games (rooms, socket mappings, etc.)
+  resetAllGames()
+  console.log('🎮 Reset in-memory games')
+
   // Delete in correct order to respect foreign key constraints
+  // Also delete rooms which may exist from previous games
+  await prisma.$executeRaw`DELETE FROM "Room" WHERE 1=1`.catch(() => {
+    // Ignore error if table doesn't exist or other issues
+  })
   await prisma.deckCard.deleteMany()
   await prisma.deck.deleteMany()
   await prisma.card.deleteMany()
   await prisma.user.deleteMany()
+
+  // Reset auto-increment sequences so IDs start from 1
+  await prisma.$executeRaw`ALTER SEQUENCE IF EXISTS "User_id_seq" RESTART WITH 1`
+  await prisma.$executeRaw`ALTER SEQUENCE IF EXISTS "Card_id_seq" RESTART WITH 1`
+  await prisma.$executeRaw`ALTER SEQUENCE IF EXISTS "Deck_id_seq" RESTART WITH 1`
+  await prisma.$executeRaw`ALTER SEQUENCE IF EXISTS "DeckCard_id_seq" RESTART WITH 1`
+  await prisma.$executeRaw`ALTER SEQUENCE IF EXISTS "Room_id_seq" RESTART WITH 1`
 
   const hashedPassword = await bcrypt.hash('password123', 10)
 

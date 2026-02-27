@@ -12,6 +12,7 @@ import { authRouter as signUpRouter } from './api/auth/sign-up'
 import { cardRouter } from './api/cards/card'
 import { deckRouter } from './api/deck/deck'
 import { env } from './env'
+import { registerGameHandlers } from './socket/game'
 import { registerMatchmakingHandlers } from './socket/matchmaking'
 import { socketAuthMiddleware } from './socket/middleware'
 
@@ -222,6 +223,9 @@ if (require.main === module) {
   // Register matchmaking handlers
   registerMatchmakingHandlers(io);
 
+  // Register game handlers
+  registerGameHandlers(io);
+
   // Handle authenticated connections
   io.on('connection', (socket) => {
     console.log(`✅ Utilisateur connecté: ${socket.user?.email} (ID: ${socket.user?.userId})`);
@@ -246,4 +250,3 @@ if (require.main === module) {
     process.exit(1)
   }
 }
-
