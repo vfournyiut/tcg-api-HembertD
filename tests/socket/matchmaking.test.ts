@@ -968,5 +968,36 @@ describe('Socket Matchmaking', () => {
         }
       })
     })
+
+    describe('disconnect', () => {
+      it('should handle socket disconnection', () => {
+        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+        registerMatchmakingHandlers(mockIo)
+
+        const connectionHandler = mockIo.on.mock.calls.find(
+          (call: unknown[]) => call[0] === 'connection'
+        )?.[1] as Function
+
+        if (connectionHandler) {
+          connectionHandler(mockSocket)
+
+          const disconnectHandler = mockSocket.on.mock.calls.find(
+            (call: unknown[]) => call[0] === 'disconnect'
+          )?.[1] as Function
+
+          if (disconnectHandler) {
+            disconnectHandler()
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+              `Socket déconnecté du matchmaking: ${mockSocket.id}`
+            )
+          }
+        }
+
+        consoleSpy.mockRestore()
+      })
+    })
+
   })
 })
